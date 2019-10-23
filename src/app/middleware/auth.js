@@ -7,7 +7,7 @@ import authConfig from '../../config/auth';
 
 export default async (req, res, next) => {
 
-   const authHeader = req.headers.authorization;
+   const authHeader = req.headers.authorization; 
 
   if(!authHeader) {
     // 401: UNAUTHORIZED -  sem permissão para realizar aquilo. 
@@ -27,9 +27,7 @@ export default async (req, res, next) => {
 
 
     return next();
-  } 
-  
-  catch(error) {
+  } catch(error) {
     return res.status(401).json({ error: 'Token invalid.' });
   }
 };
