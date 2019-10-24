@@ -16,7 +16,7 @@ export default async (req, res, next) => {
   
 
   // usando a posição 01 do Array apenas
-  const [, token] = authHeader.split('  '); // retorando o token
+  const [, token] = authHeader.split(' '); // retorando o token
 
   try {  
     // decoded: condigo criptogrado 'jtw' / id do usuário

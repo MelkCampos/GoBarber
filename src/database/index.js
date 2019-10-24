@@ -22,7 +22,10 @@ class Database {
     this.connection = new Sequelize(databaseConfig);
 
     // pecorrendo Array- ele tem acesso aos arquivos descritos ems eu Array
-    models.map(model => model.init(this.connection));
+    models
+    .map(model => model.init(this.connection))
+    .map(model => model.associate && model.associate(this.connection.models));
+    // se o primeiro existir executa o segundo
   }
 }
 

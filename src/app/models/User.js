@@ -42,6 +42,11 @@ class User extends Model {
     return this;
   }
 
+  // associação entre a tebala 'User' e 'File'
+  static associate(models) {
+    this.belongsTo(models.File, { foreignKey: 'avatar_id', as: 'avatar' });
+  }
+
 
   // novo metados
   checkPassword(password) {
