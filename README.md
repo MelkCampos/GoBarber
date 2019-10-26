@@ -10,7 +10,7 @@ Eficiência e produtividade são dois pontos importantes e prezados dentro do pr
 
 ## Tecnologias Usadas
 
-### Back-end
+### back-end
 * Yarn
 * Docker
 * Sequelize (PostgreSQL)
