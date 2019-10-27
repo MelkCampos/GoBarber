@@ -1,18 +1,50 @@
 import * as Yup from 'yup';
-import { startOfHour, parseISO, isBefore } from 'date-fns';
+import { startOfHour, parseISO, isBefore, format, subHours } from 'date-fns';
+import pt from 'date-fns/locale/pt-BR';
 import User from '../models/User';
+import File from '../models/File';
 import Appointment from '../models/Appointments';
+import Notification from '../Schemas/Notification';
 
 
 class AppointmentController {
+  // listagem de usuários logados, com agendamento não cancelado
+  // ordenados por data
+  // seleção atributos as serem ixibidos
+  // relacionamento com o prestador de serviços
+ // e o avatar do "provider" (prestador de serviços)
 
-  // async index(req, res) {
-  //   const appointments = await Appointment.findAll({ 
-  //      where: { user_id: req.userId , canceled_at: null },
-  //      });
+  async index(req, res) {
 
-  //   return res.json(appointments);
-  // }
+    // se não for informado, por padrão o usuário estará na página 1
+    const { page = 1 } = req.query;
+
+    const appointments = await Appointment.findAll({ 
+       where: { user_id: req.userId , canceled_at: null },
+       // ordenação da tabela ( assim como se faz por exemplo em sql )
+       order: ['date'], // ordenando por data
+       attributes: ['id', 'date'],
+       limit: 20,
+       offset: (page - 1) * 20,
+       include: [
+         {
+            model: User,
+            as: 'provider',
+            attributes: ['id', 'name'], // dados que quero mostrar.
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+                // path é a informação do avatar pego do banco de dados (BD)
+              },
+            ],
+         },
+        ],
+       });
+
+    return res.json(appointments);
+  }
   
   async store(req, res) {
     const schema = Yup.object().shape({
@@ -37,9 +69,12 @@ class AppointmentController {
        return res
        .status(401)
        .json({ error: 'You can only create appointments with providers.'});
+     } 
+     
+     else if(provider_id == req.userId) {
+        return res.status(401).json({ error: 'You can not create a appointment with you.' });
      }
-    
-    
+  
      // configurações de horários na aplicação 
 
      // parseISO(date) - transfere para um objeto 'date' do javaScript 
@@ -78,11 +113,62 @@ class AppointmentController {
      // ele é pego de "userId", que é gerado pelo "auth" assim que um usuário é criado
       user_id: req.userId,
       provider_id,
-      date: hourStart,
+      date,
     });
+
+
+    const user = await User.findByPk(req.userId);
+    const formatDate = format(
+      hourStart,
+      "'dia' dd 'de' MMMM', ás' H:mm'h'",
+      { locale: pt }
+    );
+
+    // notificar prestador de serviços
+    await Notification.create({ 
+      content: `Novo agendamento de ${user.name} para ${formatDate} `,
+      user: provider_id,
+     });
+    
+
+    return res.json(appointment);
+  }
+
+  async delete(req, res) {
+      // validação: Se o usuário que está tentando excluir o appointment
+      // foi o mesmo que o criou
+
+      const appointment = await Appointment.findByPk(req.params.id);
+
+      if(appointment.user_id !== req.userId) {
+        return res
+        .status(401)
+        .json({
+        error: "You don't have permission to cancel this appointment." });
+      }
+
+      // validação: O usuário só poderá realizar o cancelamento de seu "appointment"
+      // até 2h antes. SOMENTE.
+
+                                    // não precissa usar o Parse.ISO()
+                                    // pois quandoa "date" está vindo do banco de dados
+                                    // ela vêm formatada 
+        const dateWithSub = subHours(appointment.date, 2); // diminuindo 2 horas
+
+        if(isBefore(dateWithSub, new Date())) {
+          return res
+          .status(401)
+          .json({ error: 'You can only cancel appointments 2 hours in advance.' });
+        }
+
+        // se caso estiver dentre o prazo de 2h
+        appointment.canceled_at = new Date();
+
+        await appointment.save();
 
     return res.json(appointment);
   }
 }
 
 export default new AppointmentController();
+
