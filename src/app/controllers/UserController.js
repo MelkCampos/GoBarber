@@ -85,7 +85,7 @@ class UserController {
 
       // validação de senha para alteração de email
       // função (de autenticação de senha) só é rodada se o usuário
-      // literalmente pediu sua alteração. Não em todas os tipo deupdate de sua conta
+      // literalmente pediu sua alteração. Não em todas os tipo de update de sua conta
       // como email e nome por exemplo.
       if(oldPassword && !(await user.checkPassword(oldPassword))) {
 

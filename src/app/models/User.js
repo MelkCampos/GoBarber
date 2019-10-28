@@ -48,7 +48,7 @@ class User extends Model {
   }
 
 
-  // novo metados
+  // novos metados
   checkPassword(password) {
     // password: senha passada pelo usuario
     // password_hash: senha gravada no banco de dados

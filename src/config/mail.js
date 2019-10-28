@@ -11,7 +11,7 @@ export default {
     user: 'cec9c64e5d1a95',
     pass: '06563e9e57224e',
   }, default: {
-      fro3m: 'Equipe GoBarber <noreply@gobarber.com>',
+      from: 'Equipe GoBarber <noreply@gobarber.com>',
   },
 }
 
