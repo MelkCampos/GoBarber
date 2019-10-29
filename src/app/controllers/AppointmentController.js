@@ -6,7 +6,8 @@ import File from '../models/File';
 import Appointment from '../models/Appointments';
 import Notification from '../Schemas/Notification';
 
-import Mail from '../../lib/Mail';
+import CancellationMail from '../jobs/CancellationMail';
+import Queue from '../../lib/Queue';
 
 class AppointmentController {
   // listagem de usuários logados, com agendamento não cancelado
@@ -144,7 +145,13 @@ class AppointmentController {
           model: User,
           as: 'provider',
           attributes: ['name', 'email'],
-        }],
+        }, 
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name'],
+        }
+      ],
       });
 
       if(appointment.user_id !== req.userId) {
@@ -173,12 +180,8 @@ class AppointmentController {
 
         await appointment.save();
 
-        // envio de email
-        await Mail.sendMail({
-          // Remetente e Destinatario do email
-          to: `${appointment.provider.name} <${appointment.provider.email}>`,
-          subject: 'Agendamento Cancelado',
-          text: 'Você tem um novo cancelamento',
+        await Queue.add(CancellationMail.key, {
+              appointment,
         });
 
     return res.json(appointment);
