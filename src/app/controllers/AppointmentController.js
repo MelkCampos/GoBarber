@@ -25,7 +25,7 @@ class AppointmentController {
        where: { user_id: req.userId , canceled_at: null },
        // ordenação da tabela ( assim como se faz por exemplo em sql )
        order: ['date'], // ordenando por data
-       attributes: ['id', 'date'],
+       attributes: ['id', 'date', 'past', 'cancelable'],
        limit: 20,
        offset: (page - 1) * 20,
        include: [

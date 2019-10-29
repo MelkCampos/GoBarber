@@ -1,4 +1,6 @@
 import Sequelize, { Model } from 'sequelize';
+import { isBefore, subHours } from 'date-fns';
+ 
 
 class Appointments extends Model {
 
@@ -8,6 +10,25 @@ class Appointments extends Model {
       {
       date: Sequelize.DATE,
       canceled_at: Sequelize.DATE,
+      past: {
+        type: Sequelize.VIRTUAL,    
+        get() {
+          return isBefore(this.date, new Date());
+        },
+      },
+
+      cancelable: {
+        type: Sequelize.VIRTUAL,
+
+        // [ 1 ] - validando novamente se o horário que o cliente deseja desmarca ja passou.
+        // [ 2 ] - E se ainda não estiver passado, se ele está duas horas antes desse horário.
+        // [ ps ]: regra de negócio do sistema: O Cancelamento só poderá ser cancelado com
+        // no minimo 2 horas de antecedência.
+
+        get() {
+          return isBefore(new Date(), subHours(this.date, 2));
+        },
+      },
     }, 
 
       {
