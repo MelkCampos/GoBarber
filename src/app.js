@@ -1,3 +1,5 @@
+import 'dotenv/config';
+// pode importar todas as suas variaveis atrávez do "process."
 import express from 'express';
 
 // vir antes das rotas, para que assim as rotas sofram esa alteração
@@ -42,11 +44,18 @@ class App {
   exceptionHnadler() {
     // middleware de 4 parametros, é um middleware de exeção
     this.server.use(async (error, req, res, next) => {
+
+      // apenas mostrar tais erros (que envolven dados sensiveis, quando a aplicação
+      // estiver em modo de desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
         const errors = await new Youch(error, req).toJSON();
 
         // erro 500: erro se servidor. "Error: internal error"
         return res.status(500).json(errors);
         
+      }
+      
+        return res.status(500).json({ error: 'Internal server error.' });
     });
   }
 }
